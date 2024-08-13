@@ -1,223 +1,291 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Audio Upload and Record</title>
-  <style>
-    /* Basic styling for buttons and layout */
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
-
-    h1 {
-      color: #333;
-    }
-
-    button {
-      padding: 10px 15px;
-      margin: 5px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      background-color: #007bff;
-      color: white;
-    }
-
-    button:disabled {
-      background-color: #ccc;
-      color: black;
-      cursor: not-allowed;
-    }
-
-    #transcriptOutput {
-      width: 100%;
-      margin-top: 10px;
-      margin-bottom: 10px;
-      padding: 10px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-
-    #steps {
-      margin-top: 20px;
-      padding: 15px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      background-color: #f9f9f9;
-    }
-
-    #steps h2 {
-      color: #007bff;
-    }
-
-  </style>
-</head>
-<body>
-  <h1>Audio Upload and Record</h1>
-
-  <!-- Upload Audio Section -->
-  <button onclick="document.getElementById('audioFileInput').click()">Upload Audio</button>
-  <input type="file" id="audioFileInput" accept="audio/*" style="display:none">
-  <span id="fileNameDisplay">No file chosen</span>
-  <button id="transcriptBtn" disabled>Transcript</button>
-
-  <br><br>
-
-  <!-- Record Audio Section -->
-  <button id="recordAudioBtn">Record Audio</button>
-  <button id="stopRecordingBtn" disabled>Stop Recording</button>
-
-  <br><br>
-
-  <!-- Status Message -->
-  <p id="statusMessage"></p>
-
-  <!-- Transcript Output and Actions -->
-  <textarea id="transcriptOutput" rows="10" cols="100" disabled></textarea>
-  <br>
-  <button id="editTranscriptBtn" disabled>Edit Transcript</button>
-  <button id="copyTranscriptBtn" disabled>Copy to Clipboard</button>
-  <button id="reloadPageBtn">Reload Page</button>
-
-  <!-- Steps Section -->
-  <div id="steps">
-    <h2>Steps to Use the Application</h2>
-    <ol>
-      <li><strong>Upload an Audio File:</strong> Click "Upload Audio", select an audio file, and then click "Transcript" to transcribe.</li>
-      <li><strong>Record New Audio:</strong> Click "Record Audio" to start recording, then "Stop Recording" to stop and transcribe.</li>
-      <li><strong>Edit the Transcript:</strong> Use the "Edit Transcript" button to modify the transcript text.</li>
-      <li><strong>Copy the Transcript:</strong> Click "Copy to Clipboard" to copy the transcript text.</li>
-      <li><strong>Reload the Page:</strong> Click "Reload Page" to reset the application and start over.</li>
-    </ol>
-  </div>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const audioFileInput = document.getElementById('audioFileInput');
-      const transcriptBtn = document.getElementById('transcriptBtn');
-      const recordAudioBtn = document.getElementById('recordAudioBtn');
-      const stopRecordingBtn = document.getElementById('stopRecordingBtn');
-      const fileNameDisplay = document.getElementById('fileNameDisplay');
-      const statusMessage = document.getElementById('statusMessage');
-      const transcriptOutput = document.getElementById('transcriptOutput');
-      const editTranscriptBtn = document.getElementById('editTranscriptBtn');
-      const copyTranscriptBtn = document.getElementById('copyTranscriptBtn');
-      const reloadPageBtn = document.getElementById('reloadPageBtn');
-
-      let mediaRecorder;
-      let recordedChunks = [];
-      let isRecording = false;
-
-      function handleError(error) {
-        transcriptOutput.value = `Error: ${error.message}`;
-        statusMessage.textContent = "";
-        window.location.reload();
-        toggleButtons(true, true, false, false, false);
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Audio Upload and Record</title>
+    <style>
+      /* Basic styling for buttons and layout */
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
       }
 
-      function toggleButtons(transcriptEnabled, recordEnabled, stopEnabled, editEnabled, copyEnabled) {
-        transcriptBtn.disabled = !transcriptEnabled;
-        recordAudioBtn.disabled = !recordEnabled;
-        stopRecordingBtn.disabled = !stopEnabled;
-        editTranscriptBtn.disabled = !editEnabled;
-        copyTranscriptBtn.disabled = !copyEnabled;
+      h1 {
+        color: #333;
       }
 
-      async function uploadAudio(audioBlob) {
-        const formData = new FormData();
-        formData.append('files', audioBlob);
+      button {
+        padding: 10px 15px;
+        margin: 5px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        background-color: #007bff;
+        color: white;
+      }
 
-        transcriptOutput.value = "";
+      button:disabled {
+        background-color: #ccc;
+        color: black;
+        cursor: not-allowed;
+      }
 
-        statusMessage.textContent = "Please wait, we are transcribing your audio note. Transcription time depends on the length of the audio.";
+      #transcriptOutput {
+        width: 100%;
+        margin-top: 10px;
+        margin-bottom: 10px;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+      }
 
-        try {
-          const response = await fetch('https://49.50.119.73.nip.io/whisper', {
-            method: 'POST',
-            body: formData,
-          });
+      #steps {
+        margin-top: 20px;
+        padding: 15px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+      }
 
-          if (response.ok) {
-            const result = await response.json();
-            const transcript = result.results[0].transcript;
-            transcriptOutput.value = transcript;
-            statusMessage.textContent = "Transcription complete!";
-            toggleButtons(true, true, false, true, true);
-          } else {
-            handleError(new Error(response.statusText));
+      #steps h2 {
+        color: #007bff;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Audio Upload and Record</h1>
+
+    <!-- Upload Audio Section -->
+    <button onclick="document.getElementById('audioFileInput').click()">
+      Upload Audio
+    </button>
+    <input
+      type="file"
+      id="audioFileInput"
+      accept="audio/*"
+      style="display: none"
+    />
+    <span id="fileNameDisplay">No file chosen</span>
+    <button id="transcriptBtn" disabled>Transcript</button>
+
+    <br /><br />
+
+    <!-- Record Audio Section -->
+    <button id="recordAudioBtn">Record Audio</button>
+    <button id="stopRecordingBtn" disabled>Stop Recording</button>
+
+    <br /><br />
+
+    <!-- Status Message -->
+    <p id="statusMessage"></p>
+
+    <!-- Transcript Output and Actions -->
+    <textarea id="transcriptOutput" rows="10" cols="100" disabled></textarea>
+    <br />
+    <button id="editTranscriptBtn" disabled>Edit Transcript</button>
+    <button id="copyTranscriptBtn" disabled>Copy to Clipboard</button>
+    <button id="reloadPageBtn">Reload Page</button>
+
+    <!-- Steps Section -->
+    <div id="steps">
+      <h2>Anatomy of the Application</h2>
+      <ol>
+        <li>
+          <strong>Record New Audio:</strong> Click "Record Audio" to start
+          recording, then "Stop Recording" to stop and transcribe.
+        </li>
+        <li>
+          <strong>Upload an Audio File:</strong> Click "Upload Audio", select an
+          audio file, and then click "Transcript" to transcribe.
+        </li>
+        <li>
+          <strong>Edit the Transcript:</strong> Use the "Edit Transcript" button
+          to modify the transcript text.
+        </li>
+        <li>
+          <strong>Copy the Transcript:</strong> Click "Copy to Clipboard" to
+          copy the transcript text.
+        </li>
+        <li>
+          <strong>Reload the Page:</strong> Click "Reload Page" to reset the
+          application and start over.  <br><strong>Note: </strong> After each transcription, it is advisable to reload the page before starting a new transcription.
+        </li>
+      </ol>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const audioFileInput = document.getElementById("audioFileInput");
+        const transcriptBtn = document.getElementById("transcriptBtn");
+        const recordAudioBtn = document.getElementById("recordAudioBtn");
+        const stopRecordingBtn = document.getElementById("stopRecordingBtn");
+        const fileNameDisplay = document.getElementById("fileNameDisplay");
+        const statusMessage = document.getElementById("statusMessage");
+        const transcriptOutput = document.getElementById("transcriptOutput");
+        const editTranscriptBtn = document.getElementById("editTranscriptBtn");
+        const copyTranscriptBtn = document.getElementById("copyTranscriptBtn");
+        const reloadPageBtn = document.getElementById("reloadPageBtn");
+
+        let mediaRecorder;
+        let recordedChunks = [];
+        let isRecording = false;
+
+        function handleError(error) {
+          transcriptOutput.value = `Error: ${error.message}`;
+          statusMessage.textContent = "";
+          window.location.reload();
+          toggleButtons(true, true, false, false, false);
+        }
+
+        function toggleButtons(
+          transcriptEnabled,
+          recordEnabled,
+          stopEnabled,
+          editEnabled,
+          copyEnabled
+        ) {
+          transcriptBtn.disabled = !transcriptEnabled;
+          recordAudioBtn.disabled = !recordEnabled;
+          stopRecordingBtn.disabled = !stopEnabled;
+          editTranscriptBtn.disabled = !editEnabled;
+          copyTranscriptBtn.disabled = !copyEnabled;
+        }
+
+        async function uploadAudio(audioBlob) {
+          const formData = new FormData();
+          formData.append("files", audioBlob);
+
+          transcriptOutput.value = "";
+
+          statusMessage.textContent =
+            "Please wait, we are transcribing your audio note. Transcription time depends on the length of the audio.";
+
+          try {
+            const response = await fetch(
+              "https://49.50.119.73.nip.io/whisper",
+              {
+                method: "POST",
+                body: formData,
+              }
+            );
+
+            if (response.ok) {
+              const result = await response.json();
+              const transcript = result.results[0].transcript;
+              transcriptOutput.value = transcript;
+              statusMessage.textContent = "Transcription complete!";
+              toggleButtons(true, true, false, true, true);
+            } else {
+              handleError(new Error(response.statusText));
+            }
+          } catch (error) {
+            handleError(error);
           }
-        } catch (error) {
-          handleError(error);
         }
-      }
 
-      // File upload handling
-      audioFileInput.addEventListener('change', () => {
-        const fileName = audioFileInput.files.length > 0 ? audioFileInput.files[0].name : 'No file chosen';
-        fileNameDisplay.textContent = fileName;
-        toggleButtons(!!audioFileInput.files.length, true, false, false, false);
+        // File upload handling
+        audioFileInput.addEventListener("change", () => {
+          const fileName =
+            audioFileInput.files.length > 0
+              ? audioFileInput.files[0].name
+              : "No file chosen";
+          fileNameDisplay.textContent = fileName;
+          toggleButtons(
+            !!audioFileInput.files.length,
+            true,
+            false,
+            false,
+            false
+          );
+        });
+
+        transcriptBtn.addEventListener("click", async () => {
+          if (audioFileInput.files.length > 0) {
+            statusMessage.textContent =
+              "Please wait, we are transcribing your audio note. Transcription time depends on the length of the audio.";
+            toggleButtons(false, false, false, false, false);
+            await uploadAudio(audioFileInput.files[0]);
+          }
+        });
+
+        // Audio recording handling
+        recordAudioBtn.addEventListener("click", async () => {
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+              audio: true,
+            });
+            mediaRecorder = new MediaRecorder(stream);
+
+            mediaRecorder.ondataavailable = (event) =>
+              recordedChunks.push(event.data);
+            mediaRecorder.onstop = async () => {
+              const audioBlob = new Blob(recordedChunks, { type: "audio/wav" });
+              recordedChunks = []; // Reset for next recording
+              await uploadAudio(audioBlob);
+              isRecording = false;
+              toggleButtons(true, true, false, true, true);
+            };
+
+            mediaRecorder.start();
+            isRecording = true;
+            statusMessage.textContent = "Recording... Please start speaking.";
+            toggleButtons(false, false, true, false, false);
+          } catch (error) {
+            handleError(error);
+          }
+        });
+
+        stopRecordingBtn.addEventListener("click", () => {
+          if (mediaRecorder && isRecording) {
+            mediaRecorder.stop();
+            stopRecordingBtn.disabled = true;
+            statusMessage.textContent =
+              "Please wait, we are transcribing your audio note. Transcription time depends on the length of the audio.";
+          }
+        });
+
+        // Transcript editing and copying
+        editTranscriptBtn.addEventListener("click", () => {
+          transcriptOutput.disabled = false;
+          editTranscriptBtn.disabled = true;
+          copyTranscriptBtn.disabled = false;
+        });
+
+        copyTranscriptBtn.addEventListener("click", () => {
+          const transcriptText = transcriptOutput.value;
+
+          // Temporary enable textarea to select the content
+          transcriptOutput.disabled = false;
+          transcriptOutput.select();
+
+          if (navigator.clipboard) {
+            navigator.clipboard
+              .writeText(transcriptText)
+              .then(() => {
+                alert("Transcript copied to clipboard!");
+              })
+              .catch((err) => {
+                console.error("Failed to copy: ", err);
+              });
+          } else {
+            // Fallback for non-secure context
+            if (document.execCommand("copy")) {
+              alert("Transcript copied to clipboard!");
+            } else {
+              alert("Failed to copy the transcript.");
+            }
+          }
+
+          // Re-disable the textarea after copying
+          transcriptOutput.disabled = true;
+        });
+
+        // Page reload
+        reloadPageBtn.addEventListener("click", () => {
+          window.location.reload();
+        });
       });
-
-      transcriptBtn.addEventListener('click', async () => {
-        if (audioFileInput.files.length > 0) {
-          statusMessage.textContent = "Please wait, we are transcribing your audio note. Transcription time depends on the length of the audio.";
-          toggleButtons(false, false, false, false, false);
-          await uploadAudio(audioFileInput.files[0]);
-        }
-      });
-
-      // Audio recording handling
-      recordAudioBtn.addEventListener('click', async () => {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          mediaRecorder = new MediaRecorder(stream);
-
-          mediaRecorder.ondataavailable = (event) => recordedChunks.push(event.data);
-          mediaRecorder.onstop = async () => {
-            const audioBlob = new Blob(recordedChunks, { type: 'audio/wav' });
-            recordedChunks = []; // Reset for next recording
-            await uploadAudio(audioBlob);
-            isRecording = false;
-            toggleButtons(true, true, false, true, true);
-          };
-
-          mediaRecorder.start();
-          isRecording = true;
-          statusMessage.textContent = "Recording... Please start speaking.";
-          toggleButtons(false, false, true, false, false);
-        } catch (error) {
-          handleError(error);
-        }
-      });
-
-      stopRecordingBtn.addEventListener('click', () => {
-        if (mediaRecorder && isRecording) {
-          mediaRecorder.stop();
-          stopRecordingBtn.disabled = true;
-          statusMessage.textContent = "Please wait, we are transcribing your audio note. Transcription time depends on the length of the audio.";
-        }
-      });
-
-      // Transcript editing and copying
-      editTranscriptBtn.addEventListener('click', () => {
-        transcriptOutput.disabled = false;
-        editTranscriptBtn.disabled = true;
-        copyTranscriptBtn.disabled = false;
-      });
-
-      copyTranscriptBtn.addEventListener('click', () => {
-        transcriptOutput.select();
-        document.execCommand('copy');
-        alert('Transcript copied to clipboard!');
-      });
-
-      // Page reload
-      reloadPageBtn.addEventListener('click', () => {
-        window.location.reload();
-      });
-    });
-  </script>
-</body>
+    </script>
+  </body>
 </html>
