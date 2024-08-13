@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Audio Upload and Record</title>
+  </head>
+  <body>
+    <h1>Upload or Record Audio</h1>
+
+    <input type="file" id="audioInput" accept="audio/*" />
+    <button id="uploadBtn" disabled>Upload Audio</button>
+
+    <br /><br />
+
+    <button id="recordBtn">Record Audio</button>
+    <button id="stopBtn" disabled>Stop Recording</button>
+
+    <br /><br />
+
+    <p id="responseText"></p>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const audioInput = document.getElementById("audioInput");
+        const uploadBtn = document.getElementById("uploadBtn");
+        const recordBtn = document.getElementById("recordBtn");
+        const stopBtn = document.getElementById("stopBtn");
+        const responseText = document.getElementById("responseText");
+
+        let mediaRecorder;
+        let recordedChunks = [];
+
+        // Enable the upload button when a file is selected
+        audioInput.addEventListener("change", () => {
+          uploadBtn.disabled = !audioInput.files.length;
+        });
+
+        // Handle the file upload when the button is clicked
+        uploadBtn.addEventListener("click", async () => {
+          uploadBtn.disabled = true;
+          uploadBtn.textContent = "Uploading...";
+
+          const file = audioInput.files[0];
+          const formData = new FormData();
+          formData.append("files", file);
+
+          try {
+            const response = await fetch("http://49.50.119.73:5000/whisper", {
+              method: "POST",
+              body: formData,
+            });
+
+            if (response.ok) {
+              const result = await response.text();
+              responseText.textContent = `Server Response: ${result}`;
+            } else {
+              responseText.textContent = `Error: ${response.statusText}`;
+            }
+          } catch (error) {
+            responseText.textContent = `Error: ${error.message}`;
+          } finally {
+            uploadBtn.textContent = "Upload Audio";
+            uploadBtn.disabled = false;
+          }
+        });
+
+        // Handle recording
+        recordBtn.addEventListener("click", async () => {
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+              audio: true,
+            });
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = (event) =>
+              recordedChunks.push(event.data);
+            mediaRecorder.onstop = async () => {
+              const blob = new Blob(recordedChunks, { type: "audio/wav" });
+              const formData = new FormData();
+              formData.append("files", blob);
+
+              try {
+                const response = await fetch(
+                  "http://49.50.119.73:5000/whisper",
+                  {
+                    method: "POST",
+                    body: formData,
+                  }
+                );
+
+                if (response.ok) {
+                  const result = await response.text();
+                  responseText.textContent = `Server Response: ${result}`;
+                } else {
+                  responseText.textContent = `Error: ${response.statusText}`;
+                }
+              } catch (error) {
+                responseText.textContent = `Error: ${error.message}`;
+              }
+            };
+
+            mediaRecorder.start();
+            recordBtn.disabled = true;
+            stopBtn.disabled = false;
+          } catch (error) {
+            responseText.textContent = `Error: ${error.message}`;
+          }
+        });
+
+        // Handle stopping the recording
+        stopBtn.addEventListener("click", () => {
+          if (mediaRecorder) {
+            mediaRecorder.stop();
+            recordBtn.disabled = false;
+            stopBtn.disabled = true;
+            recordedChunks = []; // Reset the recorded chunks for the next recording
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
