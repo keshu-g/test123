@@ -7,10 +7,7 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f5f5f5;
-      margin: 0;
-      padding: 20px;
-      text-align: center;
+      margin: 20px;
     }
 
     h1 {
@@ -18,53 +15,44 @@
     }
 
     button {
-      background-color: #4CAF50;
-      color: white;
-      padding: 10px 20px;
+      padding: 10px 15px;
+      margin: 5px;
       border: none;
       border-radius: 5px;
       cursor: pointer;
-      font-size: 16px;
-      margin: 5px;
+      background-color: #007bff;
+      color: white;
     }
 
     button:disabled {
       background-color: #ccc;
+      color: #161616;
       cursor: not-allowed;
     }
 
-    #audioFileInput, #fileNameDisplay, #transcriptOutput, #statusMessage {
-      display: block;
-      margin: 10px auto;
-    }
-
-    #fileNameDisplay {
-      font-style: italic;
-      color: #666;
-    }
-
     #transcriptOutput {
-      width: 80%;
+      width: 100%;
+      margin-top: 10px;
+      margin-bottom: 10px;
       padding: 10px;
       border-radius: 5px;
       border: 1px solid #ccc;
+    }
+
+    #steps {
       margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background-color: #f9f9f9;
     }
 
-    #statusMessage {
-      font-size: 14px;
-      color: #666;
-      margin-top: 20px;
+    #steps h2 {
+      color: #007bff;
     }
 
-    textarea {
-      font-family: inherit;
-      font-size: 14px;
-      resize: vertical;
-    }
-
-    button:hover:not(:disabled) {
-      background-color: #45a049;
+    #steps ol {
+      margin-left: 20px;
     }
   </style>
 </head>
@@ -95,6 +83,17 @@
   <button id="copyTranscriptBtn" disabled>Copy to Clipboard</button>
   <button id="reloadPageBtn">Reload Page</button>
 
+  <!-- Steps Section -->
+  <div id="steps">
+    <h2>Steps to Use the Application</h2>
+    <ol>
+      <li><strong>Upload an Audio File:</strong> Click "Upload Audio", select an audio file, and then click "Transcript" to transcribe.</li>
+      <li><strong>Record New Audio:</strong> Click "Record Audio" to start recording, then "Stop Recording" to stop and transcribe.</li>
+      <li><strong>Edit the Transcript:</strong> Use the "Edit Transcript" button to modify the transcript text.</li>
+      <li><strong>Copy the Transcript:</strong> Click "Copy to Clipboard" to copy the transcript text.</li>
+      <li><strong>Reload the Page:</strong> Click "Reload Page" to reset the application and start over.</li>
+    </ol>
+  </div>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const audioFileInput = document.getElementById('audioFileInput');
