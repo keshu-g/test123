@@ -191,10 +191,13 @@
       });
 
       stopRecordingBtn.addEventListener('click', () => {
+        transcriptBtn.disabled = true;
+        recordAudioBtn.disabled = true;
         if (mediaRecorder && isRecording) {
           mediaRecorder.stop();
           statusMessage.textContent = "Please wait, we are transcribing your audio note. Transcription time depends on the length of the audio.";
         }
+
       });
 
       // Transcript editing and copying
