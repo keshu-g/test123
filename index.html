@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Audio Upload and Record</title>
   <style>
+    /* Basic styling for buttons and layout */
     body {
       font-family: Arial, sans-serif;
       margin: 20px;
@@ -26,7 +27,7 @@
 
     button:disabled {
       background-color: #ccc;
-      color: #161616;
+      color: black;
       cursor: not-allowed;
     }
 
@@ -41,7 +42,7 @@
 
     #steps {
       margin-top: 20px;
-      padding: 10px;
+      padding: 15px;
       border: 1px solid #ccc;
       border-radius: 5px;
       background-color: #f9f9f9;
@@ -50,6 +51,7 @@
     #steps h2 {
       color: #007bff;
     }
+
   </style>
 </head>
 <body>
@@ -90,6 +92,7 @@
       <li><strong>Reload the Page:</strong> Click "Reload Page" to reset the application and start over.</li>
     </ol>
   </div>
+
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const audioFileInput = document.getElementById('audioFileInput');
@@ -160,8 +163,7 @@
       transcriptBtn.addEventListener('click', async () => {
         if (audioFileInput.files.length > 0) {
           statusMessage.textContent = "Please wait, we are transcribing your audio note. Transcription time depends on the length of the audio.";
-          transcriptBtn.disabled = true;
-          recordAudioBtn.disabled = true;
+          toggleButtons(false, false, false, false, false);
           await uploadAudio(audioFileInput.files[0]);
         }
       });
@@ -191,13 +193,11 @@
       });
 
       stopRecordingBtn.addEventListener('click', () => {
-        transcriptBtn.disabled = true;
-        recordAudioBtn.disabled = true;
         if (mediaRecorder && isRecording) {
           mediaRecorder.stop();
+          stopRecordingBtn.disabled = true;
           statusMessage.textContent = "Please wait, we are transcribing your audio note. Transcription time depends on the length of the audio.";
         }
-
       });
 
       // Transcript editing and copying
