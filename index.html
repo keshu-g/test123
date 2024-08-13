@@ -41,7 +41,7 @@
 
     #steps {
       margin-top: 20px;
-      padding: 15px;
+      padding: 10px;
       border: 1px solid #ccc;
       border-radius: 5px;
       background-color: #f9f9f9;
@@ -49,10 +49,6 @@
 
     #steps h2 {
       color: #007bff;
-    }
-
-    #steps ol {
-      margin-left: 20px;
     }
   </style>
 </head>
@@ -114,6 +110,7 @@
       function handleError(error) {
         transcriptOutput.value = `Error: ${error.message}`;
         statusMessage.textContent = "";
+        window.location.reload();
         toggleButtons(true, true, false, false, false);
       }
 
